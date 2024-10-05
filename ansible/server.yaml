@@ -1,0 +1,29 @@
+- name: Update Ubuntu packages
+  hosts: localhost
+  tasks:
+  - name: Install latest packages
+    ansible.builtin.apt:
+      update_cache: True
+      pkg:
+      - curl
+      - wget
+      - subversion
+      - build-essential
+      - cmake
+      - zlib1g-dev
+      - libgl1-mesa-dev
+      - libdrm-dev
+      - gcc
+      - g++ 
+      - graphviz
+      - doxygen
+      - gettext
+      - git 
+      - libxcb-xinerama0
+      - gnome-keyring
+      - libusb-1.0-0-dev
+      - libcfitsio-dev
+      - astrometry.net
+      - astrometry-data-tycho2
+
+
