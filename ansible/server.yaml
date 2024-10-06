@@ -70,4 +70,11 @@
       cmd: make install
       chdir: "{{build_dir}}"
       creates: /usr/local/bin/opencv_version
-
+  - name: Ensure local libraries are used
+    ansible.builtin.lineinfile:
+      path: /etc/ld.so.conf.d/libc.conf
+      search_string: /usr/local/lib
+      line: /usr/local/lib
+  - name: Update library cache
+    ansible.builtin.command:
+      cmd: ldconfig
