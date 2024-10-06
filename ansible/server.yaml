@@ -160,3 +160,63 @@
   - name: Update library cache
     ansible.builtin.command:
       cmd: ldconfig
+
+- name: Install INDI 3rdparty from source
+  hosts: localhost
+  vars:
+    build_dir: /tmp/indi-3rd-build
+    source_dir: /tmp/indi-3rd-git
+  tasks:
+  - name: Install INDI 3rdparty specific packages
+    ansible.builtin.apt:
+      pkg:
+      - libavcodec-dev
+      - libavdevice-dev
+      - libboost-dev
+      - libboost-regex-dev
+      - libcfitsio-dev
+      - libcurl4-gnutls-dev
+      - libdc1394-dev
+      - libfftw3-dev
+      - libftdi-dev
+      - libftdi1-dev
+      - libgphoto2-dev
+      - libgps-dev
+      - libgsl-dev
+      - libindi-dev
+      - libjpeg-dev
+      - liblimesuite-dev
+      - libnova-dev
+      - libraw-dev
+      - librtlsdr-dev
+      - libtiff-dev
+      - libusb-1.0-0-dev
+      - zlib1g-dev
+  - name: Checkout from github
+    ansible.builtin.git:
+      repo: https://github.com/indilib/indi-3rdparty
+      dest: "{{source_dir}}"
+      depth: 1
+  - name: Create build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_dir}}"
+      creates: "{{build_dir}}"
+  - name: Run cmake
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_LIBS=1 -B {{build_dir}} -S {{source_dir}}"
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/Makefile"
+  - name: Compile
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/libqhy/libqhyccd.so"
+  - name: Install
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_dir}}"
+      creates: /usr/local/lib/libqhyccd.so
+  - name: Update library cache
+    ansible.builtin.command:
+      cmd: ldconfig
+
