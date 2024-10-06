@@ -96,3 +96,67 @@
       cmd: bash install.sh
       chdir: /tmp/sdk_linux64_24.01.09
       creates: /usr/sbin/fxload
+
+- name: Install INDI from source
+  hosts: localhost
+  vars:
+    build_dir: /tmp/indi-build
+    source_dir: /tmp/indi-git
+  tasks:
+  - name: Install INDI specific packages
+    ansible.builtin.apt:
+      pkg:
+      - build-essential
+      - cdbs
+      - cmake
+      - dkms
+      - fxload
+      - git
+      - libavcodec-dev
+      - libboost-regex-dev
+      - libcfitsio-dev
+      - libcurl4-gnutls-dev
+      - libdc1394-dev
+      - libev-dev
+      - libfftw3-dev
+      - libftdi-dev
+      - libgphoto2-dev
+      - libgps-dev
+      - libgsl-dev
+      - libjpeg-dev
+      - libkrb5-dev
+      - libnova-dev
+      - libraw-dev
+      - librtlsdr-dev
+      - libtheora-dev
+      - libtiff-dev
+      - libusb-1.0-0-dev
+      - libusb-dev
+      - zlib1g-dev
+  - name: Checkout from github
+    ansible.builtin.git:
+      repo: https://github.com/indilib/indi.git
+      dest: "{{source_dir}}"
+      depth: 1
+  - name: Create build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_dir}}"
+      creates: "{{build_dir}}"
+  - name: Run cmake
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_dir}} -S {{source_dir}}"
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/Makefile"
+  - name: Compile
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/indiserver/indiserver"
+  - name: Install
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_dir}}"
+      creates: /usr/local/bin/indiserver
+  - name: Update library cache
+    ansible.builtin.command:
+      cmd: ldconfig
