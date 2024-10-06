@@ -1,0 +1,32 @@
+- name: Update Ubuntu packages
+  hosts: localhost
+  tasks:
+  - name: Install latest packages
+    ansible.builtin.apt:
+      pkg:
+      - astrometry-data-tycho2
+      - astrometry.net
+      - build-essential
+      - cmake
+      - curl
+      - doxygen
+      - g++
+      - gcc
+      - gettext
+      - git 
+      - gnome-keyring
+      - graphviz
+      - libcfitsio-dev
+      - libdrm-dev
+      - libgl1-mesa-dev
+      - libusb-1.0-0-dev
+      - libxcb-xinerama0
+      - subversion
+      - wget
+      - zlib1g-dev
+
+- import_playbook: opencv.yaml
+- import_playbook: qhyccd_sdk.yaml
+- import_playbook: indi_full.yaml
+- import_playbook: stellarsolver.yaml
+#- import_playbook: quarcs_server_package.yaml

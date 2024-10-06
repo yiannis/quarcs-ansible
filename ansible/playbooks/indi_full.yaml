@@ -1,102 +1,3 @@
-- name: Update Ubuntu packages
-  hosts: localhost
-  tasks:
-  - name: Install latest packages
-    ansible.builtin.apt:
-      pkg:
-      - astrometry-data-tycho2
-      - astrometry.net
-      - build-essential
-      - cmake
-      - curl
-      - doxygen
-      - g++
-      - gcc
-      - gettext
-      - git 
-      - gnome-keyring
-      - graphviz
-      - libcfitsio-dev
-      - libdrm-dev
-      - libgl1-mesa-dev
-      - libusb-1.0-0-dev
-      - libxcb-xinerama0
-      - subversion
-      - wget
-      - zlib1g-dev
-
-- name: Install OpenCV from source - v3.16
-  hosts: localhost
-  vars:
-    build_dir: /tmp/opencv-3.4.16/build
-  tasks:
-  - name: Install OpenCV specific packages
-    ansible.builtin.apt:
-      pkg:
-      - libavcodec-dev
-      - libavformat-dev
-      - libdc1394-dev
-      - libgtk2.0-dev
-      - libjpeg-dev
-      - libpng-dev
-      - libswscale-dev
-      - libtbb-dev
-      - libtbb2
-      - libtiff-dev
-      - pkg-config
-      - python3-dev
-      - python3-numpy
-  - name: Unzip
-    ansible.builtin.command:
-      cmd: tar xzf 3.4.16.tar.gz
-      chdir: /tmp/
-      creates: /tmp/opencv-3.4.16/
-  - name: Create build dir
-    ansible.builtin.command:
-      cmd: "mkdir {{build_dir}}"
-      creates: "{{build_dir}}"
-  - name: Run cmake
-    ansible.builtin.command:
-      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_dir}} -S /tmp/opencv-3.4.16/"
-      chdir: "{{build_dir}}"
-      creates: "{{build_dir}}/Makefile"
-  - name: Compile
-    ansible.builtin.command:
-      cmd: make -j5
-      chdir: "{{build_dir}}"
-      creates: "{{build_dir}}/bin/opencv_version"
-  - name: Install
-    ansible.builtin.command:
-      cmd: make install
-      chdir: "{{build_dir}}"
-      creates: /usr/local/bin/opencv_version
-  - name: Ensure local libraries are used
-    ansible.builtin.lineinfile:
-      path: /etc/ld.so.conf.d/libc.conf
-      search_string: /usr/local/lib
-      line: /usr/local/lib
-  - name: Update library cache
-    ansible.builtin.command:
-      cmd: ldconfig
-
-- name: Install QHYCCD SDK
-  hosts: localhost
-  tasks:
-  - name: Download tarball
-    ansible.builtin.get_url:
-      url: https://www.qhyccd.com/file/repository/publish/SDK/240109/sdk_linux64_24.01.09.tgz
-      dest: /tmp/sdk_linux64_24.01.09.tgz
-  - name: Extract
-    ansible.builtin.command:
-      cmd: tar xf sdk_linux64_24.01.09.tgz
-      chdir: /tmp/
-      creates: /tmp/sdk_linux64_24.01.09
-  - name: Install
-    ansible.builtin.command:
-      cmd: bash install.sh
-      chdir: /tmp/sdk_linux64_24.01.09
-      creates: /usr/sbin/fxload
-
 - name: Install INDI from source
   hosts: localhost
   vars:
@@ -133,31 +34,31 @@
       - libusb-1.0-0-dev
       - libusb-dev
       - zlib1g-dev
-  - name: Checkout from github
+  - name: Checkout INDI from github
     ansible.builtin.git:
       repo: https://github.com/indilib/indi.git
       dest: "{{source_dir}}"
       depth: 1
-  - name: Create build dir
+  - name: Create INDI build dir
     ansible.builtin.command:
       cmd: "mkdir {{build_dir}}"
       creates: "{{build_dir}}"
-  - name: Run cmake
+  - name: Run cmake for INDI
     ansible.builtin.command:
       cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_dir}} -S {{source_dir}}"
       chdir: "{{build_dir}}"
       creates: "{{build_dir}}/Makefile"
-  - name: Compile
+  - name: Compile INDI
     ansible.builtin.command:
       cmd: make -j5
       chdir: "{{build_dir}}"
       creates: "{{build_dir}}/indiserver/indiserver"
-  - name: Install
+  - name: Install INDI
     ansible.builtin.command:
       cmd: make install
       chdir: "{{build_dir}}"
       creates: /usr/local/bin/indiserver
-  - name: Update library cache
+  - name: Update library cache after INDI
     ansible.builtin.command:
       cmd: ldconfig
 
@@ -195,50 +96,49 @@
       - libtiff-dev
       - libusb-1.0-0-dev
       - zlib1g-dev
-  - name: Checkout from github
+  - name: Checkout INDI 3rdparty from github
     ansible.builtin.git:
       repo: https://github.com/indilib/indi-3rdparty
       dest: "{{source_dir}}"
       depth: 1
-  - name: Create libraries build dir
+  - name: Create INDI 3rdparty libraries build dir
     ansible.builtin.command:
       cmd: "mkdir {{build_lib_dir}}"
       creates: "{{build_lib_dir}}"
-  - name: Run cmake for libraries
+  - name: Run cmake for INDI 3rdparty libraries
     ansible.builtin.command:
       cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_LIBS=1 -B {{build_lib_dir}} -S {{source_dir}}"
       chdir: "{{build_lib_dir}}"
       creates: "{{build_lib_dir}}/Makefile"
-  - name: Compile libraries
+  - name: Compile INDI 3rdparty libraries
     ansible.builtin.command:
       cmd: make -j5
       chdir: "{{build_lib_dir}}"
       creates: "{{build_lib_dir}}/libqhy/libqhyccd.so"
-  - name: Install libraries
+  - name: Install INDI 3rdparty libraries
     ansible.builtin.command:
       cmd: make install
       chdir: "{{build_lib_dir}}"
       creates: /usr/local/lib/libqhyccd.so
-  - name: Update library cache
+  - name: Update library cache after INDI 3rdparty
     ansible.builtin.command:
       cmd: ldconfig
-  - name: Create drivers build dir
+  - name: Create INDI 3rdparty drivers build dir
     ansible.builtin.command:
       cmd: "mkdir {{build_drv_dir}}"
       creates: "{{build_drv_dir}}"
-  - name: Run cmake for drivers
+  - name: Run cmake for INDI 3rdparty drivers
     ansible.builtin.command:
       cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_drv_dir}} -S {{source_dir}}"
       chdir: "{{build_drv_dir}}"
       creates: "{{build_drv_dir}}/Makefile"
-  - name: Compile drivers
+  - name: Compile INDI 3rdparty drivers
     ansible.builtin.command:
       cmd: make -j5
       chdir: "{{build_drv_dir}}"
       creates: "{{build_drv_dir}}/indi-qhy/indi_qhy_ccd"
-  - name: Install drivers
+  - name: Install INDI 3rdparty drivers
     ansible.builtin.command:
       cmd: make install
       chdir: "{{build_drv_dir}}"
       creates: /usr/local/bin/indi_qhy_ccd
-

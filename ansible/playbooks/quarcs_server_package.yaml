@@ -1,0 +1,51 @@
+- name: Install QUARCS server
+  hosts: localhost
+  vars:
+    build_dir: /tmp/quarcs-server-build
+    source_dir: /tmp/quarcs-server-git
+  tasks:
+  - name: Install QUARCS server QT components
+    ansible.builtin.apt:
+      pkg:
+      - libgps-dev
+      - libqt5charts5-dev
+      - libqt5multimedia5-plugins
+      - libqt5opengl5-dev
+      - libqt5positioning5
+      - libqt5positioning5-plugins
+      - libqt5serialport5
+      - libqt5serialport5-dev
+      - libqt5svg5-dev
+      - libqt5websockets5-dev
+      - qtbase5-dev
+      - qtcreator
+      - qtmultimedia5-dev
+      - qtpositioning5-dev
+      - qtscript5-dev
+      - qttools5-dev
+      - qttools5-dev-tools
+      - qtwebengine5-dev
+  - name: Checkout QUARCS server from github
+    ansible.builtin.git:
+      repo: https://github.com/QHYCCD-QUARCS/QUARCS_QT-SeverProgram.git
+      dest: "{{source_dir}}"
+      depth: 1
+  - name: Create QUARCS server build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_dir}}"
+      creates: "{{build_dir}}"
+  - name: Run cmake
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_dir}} -S {{source_dir}}/src"
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/Makefile"
+  - name: Compile
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_dir}}"
+        #      creates: "{{build_dir}}/indiserver/indiserver"
+  - name: Install
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_dir}}"
+      creates: /usr/local/bin/client

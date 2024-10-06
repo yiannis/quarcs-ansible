@@ -1,0 +1,59 @@
+- name: Install OpenCV from source - v3.16
+  hosts: localhost
+  vars:
+    build_dir: /tmp/opencv-3.4.16/build
+  tasks:
+  - name: Install OpenCV specific packages
+    ansible.builtin.apt:
+      pkg:
+      - libavcodec-dev
+      - libavformat-dev
+      - libdc1394-dev
+      - libgtk2.0-dev
+      - libjpeg-dev
+      - libpng-dev
+      - libswscale-dev
+      - libtbb-dev
+      - libtbb2
+      - libtiff-dev
+      - pkg-config
+      - python3-dev
+      - python3-numpy
+  - name: Download OpenCV tarball
+    ansible.builtin.get_url:
+      url: https://github.com/opencv/opencv/archive/refs/tags/3.4.16.tar.gz
+      dest: /tmp/3.4.16.tar.gz
+  - name: Unzip OpenCV tarball
+    ansible.builtin.command:
+      cmd: tar xzf 3.4.16.tar.gz
+      chdir: /tmp/
+      creates: /tmp/opencv-3.4.16/
+  - name: Create OpenCV build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_dir}}"
+      creates: "{{build_dir}}"
+  - name: Run cmake for OpenCV
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_dir}} -S /tmp/opencv-3.4.16/"
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/Makefile"
+  - name: Compile OpenCV
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/bin/opencv_version"
+  - name: Install OpenCV
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_dir}}"
+      creates: /usr/local/bin/opencv_version
+  - name: Ensure local libraries are used
+    ansible.builtin.lineinfile:
+      path: /etc/ld.so.conf.d/libc.conf
+      search_string: /usr/local/lib
+      line: /usr/local/lib
+  - name: Update library cache
+    ansible.builtin.command:
+      cmd: ldconfig
+
+

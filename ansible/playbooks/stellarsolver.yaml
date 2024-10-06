@@ -22,12 +22,12 @@
       cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -DUSE_QT5=ON -B {{build_dir}} -S {{source_dir}}"
       chdir: "{{build_dir}}"
       creates: "{{build_dir}}/Makefile"
-  - name: Compile
+  - name: Compile StellarSolver
     ansible.builtin.command:
       cmd: make -j5
       chdir: "{{build_dir}}"
       creates: "{{build_dir}}/libstellarsolver.so"
-  - name: Install
+  - name: Install StellarSolver
     ansible.builtin.command:
       cmd: make install
       chdir: "{{build_dir}}"

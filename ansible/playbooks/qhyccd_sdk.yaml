@@ -1,0 +1,19 @@
+- name: Install QHYCCD SDK
+  hosts: localhost
+  tasks:
+  - name: Download QHYCCD tarball
+    ansible.builtin.get_url:
+      url: https://www.qhyccd.com/file/repository/publish/SDK/240109/sdk_linux64_24.01.09.tgz
+      dest: /tmp/sdk_linux64_24.01.09.tgz
+  - name: Extract QHYCCD tarball
+    ansible.builtin.command:
+      cmd: tar xf sdk_linux64_24.01.09.tgz
+      chdir: /tmp/
+      creates: /tmp/sdk_linux64_24.01.09
+  - name: Install QHYCCD
+    ansible.builtin.command:
+      cmd: bash install.sh
+      chdir: /tmp/sdk_linux64_24.01.09
+      creates: /usr/sbin/fxload
+
+
