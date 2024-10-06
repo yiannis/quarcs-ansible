@@ -1,0 +1,10 @@
+** Work in progress repo **
+
+See: https://github.com/QHYCCD-QUARCS/QUARCS_README
+
+There are 2 options:
+1. To create a Docker image, run:
+$ docker build -t quarcs .
+
+2. To install everything on your current local environment, run:
+$ bash scripts/full_local_install.sh
