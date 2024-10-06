@@ -3,27 +3,71 @@
   tasks:
   - name: Install latest packages
     ansible.builtin.apt:
-      update_cache: True
       pkg:
-      - curl
-      - wget
-      - subversion
+      - astrometry-data-tycho2
+      - astrometry.net
       - build-essential
       - cmake
-      - zlib1g-dev
-      - libgl1-mesa-dev
-      - libdrm-dev
-      - gcc
-      - g++ 
-      - graphviz
+      - curl
       - doxygen
+      - g++
+      - gcc
       - gettext
       - git 
-      - libxcb-xinerama0
       - gnome-keyring
-      - libusb-1.0-0-dev
+      - graphviz
       - libcfitsio-dev
-      - astrometry.net
-      - astrometry-data-tycho2
+      - libdrm-dev
+      - libgl1-mesa-dev
+      - libusb-1.0-0-dev
+      - libxcb-xinerama0
+      - subversion
+      - wget
+      - zlib1g-dev
 
+- name: Install OpenCV from source - v3.16
+  hosts: localhost
+  vars:
+    build_dir: /tmp/opencv-3.4.16/build
+  tasks:
+  - name: Install OpenCV specific packages
+    ansible.builtin.apt:
+      pkg:
+      - libavcodec-dev
+      - libavformat-dev
+      - libdc1394-dev
+      - libgtk2.0-dev
+      - libjpeg-dev
+      - libpng-dev
+      - libswscale-dev
+      - libtbb-dev
+      - libtbb2
+      - libtiff-dev
+      - pkg-config
+      - python3-dev
+      - python3-numpy
+  - name: Unzip
+    ansible.builtin.command:
+      cmd: tar xzf 3.4.16.tar.gz
+      chdir: /tmp/
+      creates: /tmp/opencv-3.4.16/
+  - name: Create build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_dir}}"
+      creates: "{{build_dir}}"
+  - name: Run cmake
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_dir}} -S /tmp/opencv-3.4.16/"
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/Makefile"
+  - name: Compile
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/bin/opencv_version"
+  - name: Install
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_dir}}"
+      creates: /usr/local/bin/opencv_version
 
