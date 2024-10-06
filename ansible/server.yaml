@@ -164,7 +164,8 @@
 - name: Install INDI 3rdparty from source
   hosts: localhost
   vars:
-    build_dir: /tmp/indi-3rd-build
+    build_lib_dir: /tmp/indi-3rd-build-lib
+    build_drv_dir: /tmp/indi-3rd-build-drv
     source_dir: /tmp/indi-3rd-git
   tasks:
   - name: Install INDI 3rdparty specific packages
@@ -174,8 +175,10 @@
       - libavdevice-dev
       - libboost-dev
       - libboost-regex-dev
+      - libcap2-bin
       - libcfitsio-dev
       - libcurl4-gnutls-dev
+      - libczmq-dev
       - libdc1394-dev
       - libfftw3-dev
       - libftdi-dev
@@ -197,26 +200,45 @@
       repo: https://github.com/indilib/indi-3rdparty
       dest: "{{source_dir}}"
       depth: 1
-  - name: Create build dir
+  - name: Create libraries build dir
     ansible.builtin.command:
-      cmd: "mkdir {{build_dir}}"
-      creates: "{{build_dir}}"
-  - name: Run cmake
+      cmd: "mkdir {{build_lib_dir}}"
+      creates: "{{build_lib_dir}}"
+  - name: Run cmake for libraries
     ansible.builtin.command:
-      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_LIBS=1 -B {{build_dir}} -S {{source_dir}}"
-      chdir: "{{build_dir}}"
-      creates: "{{build_dir}}/Makefile"
-  - name: Compile
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -D BUILD_LIBS=1 -B {{build_lib_dir}} -S {{source_dir}}"
+      chdir: "{{build_lib_dir}}"
+      creates: "{{build_lib_dir}}/Makefile"
+  - name: Compile libraries
     ansible.builtin.command:
       cmd: make -j5
-      chdir: "{{build_dir}}"
-      creates: "{{build_dir}}/libqhy/libqhyccd.so"
-  - name: Install
+      chdir: "{{build_lib_dir}}"
+      creates: "{{build_lib_dir}}/libqhy/libqhyccd.so"
+  - name: Install libraries
     ansible.builtin.command:
       cmd: make install
-      chdir: "{{build_dir}}"
+      chdir: "{{build_lib_dir}}"
       creates: /usr/local/lib/libqhyccd.so
   - name: Update library cache
     ansible.builtin.command:
       cmd: ldconfig
+  - name: Create drivers build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_drv_dir}}"
+      creates: "{{build_drv_dir}}"
+  - name: Run cmake for drivers
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -B {{build_drv_dir}} -S {{source_dir}}"
+      chdir: "{{build_drv_dir}}"
+      creates: "{{build_drv_dir}}/Makefile"
+  - name: Compile drivers
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_drv_dir}}"
+      creates: "{{build_drv_dir}}/indi-qhy/indi_qhy_ccd"
+  - name: Install drivers
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_drv_dir}}"
+      creates: /usr/local/bin/indi_qhy_ccd
 
