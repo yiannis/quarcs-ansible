@@ -1,0 +1,34 @@
+- name: Install StellarSolver library from source
+  hosts: localhost
+  vars:
+    source_dir: /tmp/stellar-solver-git
+    build_dir: /tmp/stellar-solver-build
+  tasks:
+  - name: Install StellarSolver specific packages
+    ansible.builtin.apt:
+      pkg:
+      - wcslib-dev
+  - name: Checkout StellarSolver from GitHub
+    ansible.builtin.git:
+      repo: https://github.com/rlancaste/stellarsolver.git
+      dest: "{{source_dir}}"
+      depth: 1
+  - name: Create StellarSolver build dir
+    ansible.builtin.command:
+      cmd: "mkdir {{build_dir}}"
+      creates: "{{build_dir}}"
+  - name: Run cmake for StellarSolver
+    ansible.builtin.command:
+      cmd: "cmake -D CMAKE_BUILD_TYPE=Release -D CMAKE_INSTALL_PREFIX=/usr/local -DUSE_QT5=ON -B {{build_dir}} -S {{source_dir}}"
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/Makefile"
+  - name: Compile
+    ansible.builtin.command:
+      cmd: make -j5
+      chdir: "{{build_dir}}"
+      creates: "{{build_dir}}/libstellarsolver.so"
+  - name: Install
+    ansible.builtin.command:
+      cmd: make install
+      chdir: "{{build_dir}}"
+      creates: /usr/local/lib/libstellarsolver.so
